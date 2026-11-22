@@ -11,6 +11,8 @@ const CH_LOOP = 2.4;
 const CH_REFRESH = 5 * 60 * 1000;
 // A chore ticked off shows as done at once, until its source reports it (or for this long).
 const CH_OPTIMISTIC = 8000;
+// Where the day's undated to-do items seen open, and those ticked off since, are kept between reloads (see chTrack).
+const CH_STORE = "chores-card:undated";
 const CH_SVG = {
   check: "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z",
   open: "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z",
@@ -124,6 +126,7 @@ class ChoresCard extends RcCard {
         todo.set(id, r?.items || []);
       }
       this._todo = todo;
+      this._keep(chTrack(this._tracked(), todo, chMidnight(Date.now())));
     } finally {
       this._busy = false;
     }
@@ -145,7 +148,9 @@ class ChoresCard extends RcCard {
     }
     const asked = (this._asked ||= new Map());
     for (const [k, v] of asked) if (now - v.at > CH_OPTIMISTIC) asked.delete(k);
-    const chores = chCollect({ hass: h, config: c, people, todo: this._todo, now }).map((x) => {
+    const track = this._tracked();
+    const doneUndated = track?.day === chMidnight(now) ? track.done : [];
+    const chores = chCollect({ hass: h, config: c, people, todo: this._todo, now, doneUndated }).map((x) => {
       const a = asked.get(x.key);
       if (!a) return x;
       if (a.done === x.done) {
@@ -163,6 +168,25 @@ class ChoresCard extends RcCard {
     const left = total - done;
     const state = !chores.length ? "empty" : overdue.length ? "overdue" : left ? "left" : "done";
     return { state, people, chores, overdue, today: todayList, total, done, left, now, name: c.title || this._t("title") };
+  }
+
+  // The day's record of the undated to-do items (chTrack), from the browser's storage at first.
+  _tracked() {
+    if (this._track === undefined) {
+      try {
+        this._track = JSON.parse(window.localStorage?.getItem(CH_STORE) || "null");
+      } catch {
+        this._track = null;
+      }
+    }
+    return this._track;
+  }
+
+  _keep(track) {
+    this._track = track;
+    try {
+      window.localStorage?.setItem(CH_STORE, JSON.stringify(track));
+    } catch {}
   }
 
   _night() {
@@ -285,6 +309,14 @@ class ChoresCard extends RcCard {
     else if (x.kind === "chore_helper" && done) rcCall(h, "chore_helper", "complete", { entity_id: x.entity });
     else if (x.kind === "grocy" && done) rcCall(h, "grocy", "execute_chore", { chore_id: x.choreId });
     else return;
+    // An undated to-do item ticked off here is done today; ticked back, it is open again.
+    if (x.kind === "todo" && x.due == null) {
+      const today = chMidnight(Date.now());
+      const t = chTrack(this._tracked(), new Map(), today);
+      t.open = [...new Set([...t.open, x.key])];
+      t.done = done ? [...new Set([...t.done, x.key])] : t.done.filter((k) => k !== x.key);
+      this._keep(t);
+    }
     this._asked.set(x.key, { done, at: Date.now() });
     this._sig = null;
     this._render();

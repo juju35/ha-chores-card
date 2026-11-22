@@ -158,7 +158,7 @@ type: custom:chores-mini-card
 ## How it works
 
 - **People**: `people`, else every `person` of the home; a person's to-do list is `todo`, else the list named after their whole name (*Kid 1* → `todo.kid_1`), else after their first name
-- **To-do lists**: their items (`todo/item/list`), read again when a list changes and every 5 minutes; an item is kept when it is due today, overdue, undated and not completed, or completed and due today; `+5` at the end of its name gives it 5 points
+- **To-do lists**: their items (`todo/item/list`), read again when a list changes and every 5 minutes; an item is kept when it is due today, overdue, undated and not completed, or completed today: due today, or undated and seen open by the card earlier in the day (a to-do list does not say when an item was completed; the day's record is kept in the browser); `+5` at the end of its name gives it 5 points
 - **Chore Helper**: every `chore_helper` sensor, due on `next_due_date`, done today when `last_completed` is today
 - **Grocy**: the `chores` attribute of its chores sensor, due on `next_estimated_execution_time`, done today when `last_tracked_time` is today, its person from the assigned user's name
 - **State**: *N overdue* when a chore is past its day, else *N left*, *All done*, or *Nothing today*

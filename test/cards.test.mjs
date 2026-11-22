@@ -64,6 +64,43 @@ test("chores: due today, overdue, undated and done today; not old done ones nor 
   assert.deepEqual([m.total, m.done], [10, 2]);
 });
 
+test("an undated to-do item completed today counts as done, not as gone", async () => {
+  const lists = { "todo.sam": [{ uid: "s2", summary: "Vacuum living room", status: "needs_action" }] };
+  const hass = makeHass({ lists });
+  const card = await make("chores-card", { people: ["person.sam"] }, hass);
+  const total = card._items.total;
+  assert.equal(card._items.done, 0);
+  // Completed elsewhere (the Donetick app): the list reports it, still without a due date.
+  lists["todo.sam"][0].status = "completed";
+  card.hass = { ...hass, states: { ...hass.states, "todo.sam": { ...hass.states["todo.sam"], state: "0", last_updated: "2026-01-02T00:00:00Z" } } };
+  await settle();
+  const vacuum = card._items.chores.find((x) => x.name === "Vacuum living room");
+  assert.ok(vacuum?.done, "kept, done");
+  assert.deepEqual([card._items.total, card._items.done], [total, 1], "the total stays, one more done");
+});
+
+test("chTrack: open undated items are remembered for the day, completed ones only once seen open", () => {
+  const today = new Date(2026, 5, 25).getTime();
+  const todo = new Map([["todo.a", [{ uid: "1", status: "needs_action" }, { uid: "2", status: "completed" }, { uid: "3", status: "needs_action", due: "2026-06-25" }]]]);
+  const t = ch.chTrack(null, todo, today);
+  assert.deepEqual(json(t), { day: today, open: ["todo:todo.a:1"], done: [] }, "an item already completed is not known to be done today");
+  todo.get("todo.a")[0].status = "completed";
+  assert.deepEqual(json(ch.chTrack(t, todo, today).done), ["todo:todo.a:1"]);
+  assert.deepEqual(json(ch.chTrack(t, new Map(), today + 864e5)), { day: today + 864e5, open: [], done: [] }, "a new day starts afresh");
+});
+
+test("an undated item ticked off from the card stays done once its list reports it", async () => {
+  const lists = { "todo.sam": [{ uid: "s2", summary: "Vacuum living room", status: "needs_action" }] };
+  const hass = makeHass({ lists });
+  const card = await make("chores-card", { people: ["person.sam"] }, hass);
+  const total = card._items.total;
+  card._toggle(card._items.chores.find((x) => x.name === "Vacuum living room"));
+  lists["todo.sam"][0].status = "completed";
+  card._asked.clear();
+  await card._fetch();
+  assert.deepEqual([card._items.total, card._items.done], [total, 1]);
+});
+
 test("full card: the banner, the filters, overdue first, today's checklist and the kids' points", async () => {
   const card = await make("chores-card", CONFIG);
   const html = card.shadowRoot.innerHTML;

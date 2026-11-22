@@ -412,7 +412,8 @@ const RC_I18N = {
 // ── Chores ───────────────────────────────────────────────────────────────────
 // The chores come from to-do lists (each person's own, as `people[].todo` or a list named after them, and the shared
 // ones in `todo`; Donetick's lists are to-do lists too), from Chore Helper's sensors and from Grocy's chores sensor.
-// A chore is kept when it is due today, overdue, undated and not done, or done today. Points: a `+N` in a to-do item
+// A chore is kept when it is due today, overdue, undated and not done, or done today (an undated to-do item: ticked
+// off since the card saw it open today, see chTrack). Points: a `+N` in a to-do item
 // (`Make bed +5`) or `points` in `chores`; each kid's total comes from a sensor (KidsChores, ChoreOps, an
 // input_number) set in `people[].points`.
 const CH_COLORS = ["#4263eb", "#0ca678", "#f76707", "#d6336c", "#7048e8", "#1098ad", "#e8590c", "#5c940d"];
@@ -487,8 +488,28 @@ const chPeople = (hass, config) => {
 // Every to-do list the card reads: the people's, and the shared ones (`todo`).
 const chTodoLists = (people, config) => [...new Set([...people.map((p) => p.todo).filter(Boolean), ...[].concat(config.todo || [])])];
 
-// The chores of the day, from every source (`todo`: the items of each to-do list, from todo/item/list).
-const chCollect = ({ hass, config, people, todo = new Map(), now }) => {
+// The undated to-do items seen open today, and those of them completed since. A to-do list does not say when an item
+// was completed, so an undated item counts as done today only when the card saw it open today (or ticked it off);
+// one completed before stays out. `store` is the day's record (kept by the card between reloads), `todo` the items.
+const chTrack = (store, todo, today) => {
+  const fresh = store?.day === today;
+  const open = new Set(fresh ? store.open : []);
+  const done = new Set(fresh ? store.done : []);
+  for (const [list, items] of todo)
+    for (const i of items) {
+      if (chDueDay(i.due) != null) continue;
+      const key = `todo:${list}:${i.uid}`;
+      if (i.status !== "completed") {
+        open.add(key);
+        done.delete(key);
+      } else if (open.has(key)) done.add(key);
+    }
+  return { day: today, open: [...open], done: [...done] };
+};
+
+// The chores of the day, from every source (`todo`: the items of each to-do list, from todo/item/list; `doneUndated`:
+// the keys of the undated items completed today, from chTrack).
+const chCollect = ({ hass, config, people, todo = new Map(), now, doneUndated = [] }) => {
   const today = chMidnight(now);
   const out = [];
   const byName = (name) => people.find((p) => chNorm(p.name) === chNorm(name) || chNorm(p.name.split(/\s+/)[0]) === chNorm(name))?.id || null;
@@ -504,8 +525,9 @@ const chCollect = ({ hass, config, people, todo = new Map(), now }) => {
       const { name, points } = chPoints(item.summary);
       const due = chDueDay(item.due);
       const done = item.status === "completed";
-      if (done && due !== today) continue;
-      add({ key: `todo:${list}:${item.uid}`, kind: "todo", entity: list, uid: item.uid, name, points, person: owner, due, done, doneToday: done });
+      const key = `todo:${list}:${item.uid}`;
+      if (done && due !== today && !(due == null && doneUndated.includes(key))) continue;
+      add({ key, kind: "todo", entity: list, uid: item.uid, name, points, person: owner, due, done, doneToday: done });
     }
   }
   const extra = Object.fromEntries((config.chores || []).map((c) => [typeof c === "string" ? c : c.entity, typeof c === "string" ? {} : c]));
