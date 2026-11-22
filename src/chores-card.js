@@ -138,7 +138,12 @@ class ChoresCard extends RcCard {
     const h = this._hass;
     const c = this._config;
     const now = Date.now();
-    const people = rcMemo((this._memo ||= {}), "people", [c.people, h.entities, ...Object.keys(h.states).filter((id) => id.startsWith("person.") || id.startsWith("todo."))], () => chPeople(h, c));
+    // The people and their lists: worked out again when a person or a to-do list changes (a new name or picture, a
+    // list added), not at each state change of the home. Their ids are listed again only with the entity registry (a
+    // list or a person added, or Home Assistant restarted).
+    const memo = (this._memo ||= {});
+    const ids = rcMemo(memo, "ids", [h.entities], () => Object.keys(h.states).filter((id) => id.startsWith("person.") || id.startsWith("todo.")));
+    const people = rcMemo(memo, "people", [c.people, h.entities, ...ids.map((id) => h.states[id])], () => chPeople(h, c));
     this._lists = chTodoLists(people, c);
     // The lists are read again when one of them changes (its state is the number of items left).
     const sig = this._lists.map((id) => `${id}:${h.states[id]?.state}:${h.states[id]?.last_updated}`).join("|");

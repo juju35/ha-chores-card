@@ -101,6 +101,16 @@ test("an undated item ticked off from the card stays done once its list reports 
   assert.deepEqual([card._items.total, card._items.done], [total, 1]);
 });
 
+test("a person renamed or given a picture is shown so, without scanning the home at each update", async () => {
+  const hass = makeHass();
+  const card = await make("chores-card", { people: ["person.sam"] }, hass);
+  assert.equal(card._items.people[0].name, "Sam");
+  const sam = hass.states["person.sam"];
+  card.hass = { ...hass, states: { ...hass.states, "person.sam": { ...sam, attributes: { ...sam.attributes, friendly_name: "Samuel", entity_picture: "/api/image/sam.png" } } } };
+  assert.equal(card._items.people[0].name, "Samuel");
+  assert.equal(card._items.people[0].picture, "/api/image/sam.png");
+});
+
 test("full card: the banner, the filters, overdue first, today's checklist and the kids' points", async () => {
   const card = await make("chores-card", CONFIG);
   const html = card.shadowRoot.innerHTML;
