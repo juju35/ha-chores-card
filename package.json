@@ -1,6 +1,6 @@
 {
   "name": "ha-chores-card",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Lovelace card for Home Assistant household chores: the day's chores of each person, ticked off with a tap, the overdue ones first, and the kids' points.",
   "repository": {
     "type": "git",
