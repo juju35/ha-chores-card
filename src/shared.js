@@ -416,7 +416,8 @@ const RC_I18N = {
 // off since the card saw it open today, see chTrack). Points: a `+N` in a to-do item
 // (`Make bed +5`) or `points` in `chores`; each kid's total comes from a sensor (KidsChores, ChoreOps, an
 // input_number) set in `people[].points`.
-const CH_COLORS = ["#4263eb", "#0ca678", "#f76707", "#d6336c", "#7048e8", "#1098ad", "#e8590c", "#5c940d"];
+// The avatars' colours: none of the card's violet accent, nor the meal card's orange (the two often side by side).
+const CH_COLORS = ["#4263eb", "#0ca678", "#d6336c", "#1098ad", "#e8590c", "#5c940d"];
 // A colour for an avatar: a hex colour, rgb()/hsl() or a CSS variable; anything else is left out (the palette's).
 const chColor = (v) => (/^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d\s.,%/+-]+\)|var\(--[\w-]+\))$/i.test(String(v ?? "").trim()) ? String(v).trim() : null);
 const CH_DAY = 24 * 3.6e6;
