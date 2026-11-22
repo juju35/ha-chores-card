@@ -161,6 +161,7 @@ type: custom:chores-mini-card
 - **To-do lists**: their items (`todo/item/list`), read again when a list changes and every 5 minutes; an item is kept when it is due today, overdue, undated and not completed, or completed today: due today, or undated and seen open by the card earlier in the day (a to-do list does not say when an item was completed; the day's record is kept in the browser); `+5` at the end of its name gives it 5 points
 - **Chore Helper**: every `chore_helper` sensor, due on `next_due_date`, done today when `last_completed` is today
 - **Grocy**: the `chores` attribute of its chores sensor, due on `next_estimated_execution_time`, done today when `last_tracked_time` is today, its person from the assigned user's name
+- **Refresh**: the to-do lists at first, every 5 minutes, and whenever one of them changes (its count or its last update); Chore Helper and Grocy follow their sensors live; a chore ticked off shows at once, until its source reports it or for 8 seconds
 - **State**: *N overdue* when a chore is past its day, else *N left*, *All done*, or *Nothing today*
 - **Actions**: `todo.update_item` (completed / needs action), `chore_helper.complete`, `grocy.execute_chore`; a Chore Helper or Grocy chore done today cannot be reopened from the card
 
