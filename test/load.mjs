@@ -109,7 +109,7 @@ export const load = ({ now } = {}) => {
   const code = [read("shared"), ...cards.map((c) => `{\n${read(c)}}\n`)].join("\n");
   return vm.runInContext(
     `${code}
-    ({ RcCard, RC_I18N, CH_I18N, rcLang, chCollect, chTrack, chSince, chPeople, customElements, window,
+    ({ RcCard, RC_I18N, CH_I18N, rcLang, rcPluralKey, chCollect, chTrack, chSince, chPeople, customElements, window,
        cards: Object.fromEntries(${JSON.stringify([...cards, "chores-mini-card"])}.map((t) => [t, customElements.get(t)])) })`,
     ctx,
   );

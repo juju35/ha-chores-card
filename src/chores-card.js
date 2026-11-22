@@ -210,8 +210,8 @@ class ChoresCard extends RcCard {
   }
 
   _status(m) {
-    if (m.state === "overdue") return this._t("st_overdue", { n: m.overdue.length });
-    if (m.state === "left") return this._t("st_left", { n: m.left });
+    if (m.state === "overdue") return this._tn("st_overdue", m.overdue.length);
+    if (m.state === "left") return this._tn("st_left", m.left);
     return this._t(`st_${m.state}`);
   }
 
@@ -280,7 +280,7 @@ class ChoresCard extends RcCard {
       const v = Number(h.states[p.points]?.state);
       const pts = Number.isFinite(v) ? Math.round(v) : null;
       const goal = p.reward && p.rewardPoints && pts != null ? (pts >= p.rewardPoints ? this._t("reward_ready", { r: p.reward }) : this._t("reward_to", { n: p.rewardPoints - pts, r: p.reward })) : "";
-      return `<button class="kp" data-id="${rcEsc(p.points)}">${this._avatar(p)}<span class="kv">${rcEsc(pts == null ? "—" : this._t("pts", { n: pts }))}</span>${goal ? `<span class="kg">${rcEsc(goal)}</span>` : ""}</button>`;
+      return `<button class="kp" data-id="${rcEsc(p.points)}">${this._avatar(p)}<span class="kv">${rcEsc(pts == null ? "—" : this._tn("pts", pts))}</span>${goal ? `<span class="kg">${rcEsc(goal)}</span>` : ""}</button>`;
     };
     return `<div class="kids">${kids.map(tile).join("")}</div>`;
   }
@@ -496,7 +496,7 @@ class ChoresMiniCard extends rcMini(
     if (!this._changed(["mini", m.state, m.total, m.done, m.left, m.overdue.length, this._night()])) return;
     // The overdue ones are the status pill already: the chip says what is left besides them.
     const rest = m.left - m.overdue.length;
-    const chips = rest > 0 ? `<span class="r" title="${rcEsc(this._t("chip_left", { n: rest }))}"><span>${rcEsc(this._t("chip_left", { n: rest }))}</span></span>` : "";
+    const chips = rest > 0 ? `<span class="r" title="${rcEsc(this._tn("chip_left", rest))}"><span>${rcEsc(this._tn("chip_left", rest))}</span></span>` : "";
     const pct = m.total ? (m.done / m.total) * 100 : 0;
     const L = 2 * Math.PI * 17;
     const badge = `<svg class="ringb" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="color-mix(in srgb, var(--c) 18%, transparent)" stroke-width="4"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${((L * pct) / 100).toFixed(1)} 999" transform="rotate(-90 20 20)"/></svg>${m.total ? `<span class="cnt">${m.done}/${m.total}</span>` : '<ha-icon icon="mdi:broom"></ha-icon>'}`;

@@ -219,6 +219,25 @@ test("since: yesterday, a weekday within the week, else a date", () => {
   assert.match(ch.chSince(day(-10).getTime(), NOW, "en"), /\d/);
 });
 
+test("plurals: one, two, few and many, by language", () => {
+  const t = { en: { x_one: "{n} item", x_many: "{n} items" }, fr: { x_one: "{n} article", x_many: "{n} articles" }, sl: { x_one: "{n} kos", x_two: "{n} kosa", x_few: "{n} kosi", x_many: "{n} kosov" }, sr: { x_one: "{n} ствар", x_few: "{n} ствари", x_many: "{n} ствари" } };
+  const k = (lang, n) => ch.rcPluralKey(t, lang, "x", n);
+  assert.deepEqual([k("en", 1), k("en", 2), k("en", 0)], ["x_one", "x_many", "x_many"]);
+  assert.deepEqual([k("fr", 0), k("fr", 1), k("fr", 2)], ["x_one", "x_one", "x_many"]);
+  assert.deepEqual([k("sl", 1), k("sl", 2), k("sl", 3), k("sl", 5)], ["x_one", "x_two", "x_few", "x_many"], "Slovenian dual");
+  assert.equal(ch.rcPluralKey({ sl: { x_one: "", x_few: "", x_many: "" } }, "sl", "x", 2), "x_few", "no dual: the few form");
+  assert.deepEqual([k("sr", 21), k("sr", 3), k("sr", 11)], ["x_one", "x_few", "x_many"]);
+});
+
+test("the points and the counts agree with their number", async () => {
+  const card = await make("chores-card", { ...CONFIG, language: "sr" });
+  assert.match(card.shadowRoot.innerHTML, /45 поена/);
+  const one = await make("chores-card", { people: ["person.sam"], language: "fr" }, makeHass({ lists: { "todo.sam": [{ uid: "s2", summary: "Vacuum", status: "needs_action" }] } }));
+  assert.equal(one._status({ state: "left", left: 1, overdue: [] }), "1 restante");
+  assert.equal(one._status({ state: "left", left: 3, overdue: [] }), "3 restantes");
+  assert.equal(one._tn("pts", 1), "1 pt");
+});
+
 test("translations: every language has every English key", () => {
   const en = Object.keys(ch.CH_I18N.en);
   for (const [lang, table] of Object.entries(ch.CH_I18N)) assert.deepEqual(en.filter((k) => !(k in table)), [], lang);
