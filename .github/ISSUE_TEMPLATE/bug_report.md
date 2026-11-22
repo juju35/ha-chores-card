@@ -24,7 +24,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment:**
 - Home Assistant version:
 - Browser:
-- HACS version:
+- Marketplace version:
 - Card version:
 - Card (chores-card or chores-mini-card):
 - Chores source (todo lists, Chore Helper, Grocy, Donetick…):
