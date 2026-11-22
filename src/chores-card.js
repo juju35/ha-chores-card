@@ -446,7 +446,7 @@ class ChoresCard extends RcCard {
     @container (max-width: 260px) { .banner, ha-card.bn > .banner { --sw: 70px; --sk: .5; } }
     /* The chips that do not fit wrap to a second line, hidden: never a chip cut to "R…". */
     .banner .rs { display: flex; flex-wrap: wrap; gap: 4px; height: 20px; margin: 3px 0 0 -2px; min-width: 0; overflow: hidden; }
-    .banner .r { flex: none; line-height: 20px; padding: 0 7px; color: var(--bt); background: rgba(255,255,255,.62); }
+    .banner .r { flex: none; line-height: 20px; padding: 0 7px; color: var(--bt); background: rgba(255,255,255,.62); cursor: default; }
     .banner.night .r { background: rgba(10,20,40,.4); }
     .banner .ringb { position: absolute; inset: 0; }
     /* The mini card's badge: the progress ring and the count inside. */
