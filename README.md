@@ -113,7 +113,7 @@ type: custom:chores-mini-card
 | `show_title` | boolean | `true` | Both: show the title |
 | `show_subtitle` | boolean | `true` | Both: *2 of 9 done today* under the title |
 | `navigation_path` | string | | Both: a tap on the header opens this dashboard path |
-| `people` | list | every person | YAML only: person entities, or `{ person, todo, points, reward, reward_points, name, color }` |
+| `people` | list | every person | YAML only: person entities, or `{ person, todo, points, reward, reward_points, name, color }` (`color`: a hex colour, `rgb()`, `hsl()` or `var(--…)`) |
 | `todo` | list | | Shared to-do lists, whose chores belong to no one in particular |
 | `chores` | list | | YAML only: Chore Helper sensors (`entity`) or Grocy chores (`grocy:<id>`) with their `person`, `points` and `name` |
 | `show_done` | boolean | `true` | The chores done today, struck through |

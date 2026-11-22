@@ -111,6 +111,17 @@ test("a person renamed or given a picture is shown so, without scanning the home
   assert.equal(card._items.people[0].picture, "/api/image/sam.png");
 });
 
+test("an avatar's colour is a colour, nothing else", () => {
+  const h = makeHass();
+  const p = (color) => ch.chPeople(h, { people: [{ person: "person.sam", color }] })[0].color;
+  assert.equal(p("#ff8800"), "#ff8800");
+  assert.equal(p("rgb(10, 20, 30)"), "rgb(10, 20, 30)");
+  assert.equal(p("hsl(200 50% 40%)"), "hsl(200 50% 40%)");
+  assert.equal(p("var(--accent-color)"), "var(--accent-color)");
+  assert.equal(p("red;background-image:url(x)"), "#4263eb", "a CSS rule: the palette's colour");
+  assert.equal(p(undefined), "#4263eb");
+});
+
 test("full card: the banner, the filters, overdue first, today's checklist and the kids' points", async () => {
   const card = await make("chores-card", CONFIG);
   const html = card.shadowRoot.innerHTML;

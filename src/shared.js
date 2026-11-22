@@ -417,6 +417,8 @@ const RC_I18N = {
 // (`Make bed +5`) or `points` in `chores`; each kid's total comes from a sensor (KidsChores, ChoreOps, an
 // input_number) set in `people[].points`.
 const CH_COLORS = ["#4263eb", "#0ca678", "#f76707", "#d6336c", "#7048e8", "#1098ad", "#e8590c", "#5c940d"];
+// A colour for an avatar: a hex colour, rgb()/hsl() or a CSS variable; anything else is left out (the palette's).
+const chColor = (v) => (/^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d\s.,%/+-]+\)|var\(--[\w-]+\))$/i.test(String(v ?? "").trim()) ? String(v).trim() : null);
 const CH_DAY = 24 * 3.6e6;
 
 const chNorm = (s) =>
@@ -476,7 +478,7 @@ const chPeople = (hass, config) => {
       name,
       short: chInitials(name),
       picture: st?.attributes.entity_picture || null,
-      color: o.color || CH_COLORS[i % CH_COLORS.length],
+      color: chColor(o.color) || CH_COLORS[i % CH_COLORS.length],
       todo: todo || null,
       points: o.points || null,
       reward: o.reward || null,
