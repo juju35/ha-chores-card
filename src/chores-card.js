@@ -121,10 +121,10 @@ class ChoresCard extends RcCard {
     this._busy = true;
     const todo = new Map();
     try {
-      for (const id of lists) {
-        const r = await h.callWS({ type: "todo/item/list", entity_id: id }).catch(() => null);
-        todo.set(id, r?.items || []);
-      }
+      const answers = await Promise.all(lists.map((id) => h.callWS({ type: "todo/item/list", entity_id: id }).catch(() => null)));
+      lists.forEach((id, i) => {
+        todo.set(id, answers[i]?.items || []);
+      });
       this._todo = todo;
       this._keep(chTrack(this._tracked(), todo, chMidnight(Date.now())));
     } finally {
